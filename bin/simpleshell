@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use AI::ExpertSystem::Simple;
+
+if ( scalar(@ARGV) != 1 ) {
+	die "usage: simpleshell <file.xml>";
+}
+
+my $filename = $ARGV[0];
+
+if ( !-f $filename ) { die "The file '$filename' is not a file"; }
+if ( !-r $filename ) { die "The file '$filename' is not readable"; }
+
+my $s = AI::ExpertSystem::Simple->new();
+
+$s->load($filename);
+
+my $running = 1;
+
+print ">> Consulting $filename\n\n";
+
+while ($running) {
+	my $r = $s->process();
+
+	if ( $r eq 'question' ) {
+		$s->answer( ask_question( $s->get_question() ) );
+	}
+	elsif ( $r eq 'finished' ) {
+		print '>> The answer is : ' . $s->get_answer() . "\n";
+		$running = undef;
+	}
+	elsif ( $r eq 'failed' ) {
+		print ">> Unable to answer your question\n";
+		$running = undef;
+	}
+}
+
+sub ask_question {
+	my ( $text, @responses ) = @_;
+
+	my $number = scalar(@responses);
+	my $x      = 0;
+
+	while ( $x < 1 or $x > $number ) {
+		print "$text\n";
+
+		for ( my $y = 1 ; $y <= $number ; $y++ ) {
+			print " $y: $responses[$y - 1]\n";
+		}
+
+		print '** ';
+		$x = <STDIN>;
+
+		$x = 0 if $x !~ m#^[0-9]$#;
+	}
+
+	return $responses[ $x - 1 ];
+}
