@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 40;
 
 ################################################################################
 # Load the class
@@ -111,3 +111,34 @@ is($y, 'to be or not to be', 'Get the question back');
 is(scalar(@z), 2, 'Get the responses back');
 is($z[0], 'be', 'Checking response');
 is($z[1], 'not', 'Checking response');
+
+################################################################################
+# Check the reset method for the value part
+################################################################################
+
+eval { $x->reset(1); };
+like($@, qr/^Knowledge->reset\(\) takes no arguments /, 'Too many arguments');
+
+$x->reset();
+
+is($x->is_value_set(), '', 'Value is not set');
+$x->set_value('fred');
+is($x->is_value_set(), '1', 'Value is set');
+
+$x->reset();
+
+is($x->is_value_set(), '', 'Value is not set');
+
+################################################################################
+# Check the reset method for both parts
+################################################################################
+
+$x->reset();
+
+is($x->has_question(), '1', 'The question has been set');
+is($x->is_value_set(), '', 'Value is not set');
+
+$x->set_value('fred');
+
+is($x->is_value_set(), '1', 'Value is set');
+is($x->has_question(), '', 'The question has been answered');

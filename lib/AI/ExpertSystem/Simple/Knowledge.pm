@@ -3,7 +3,7 @@ package AI::ExpertSystem::Simple::Knowledge;
 use strict;
 use warnings;
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub new {
 	my ($class, $name) = @_;
@@ -19,6 +19,16 @@ sub new {
 	$self->{_responses} = ();
 
 	return bless $self, $class;
+}
+
+sub reset {
+	my ($self) = @_;
+
+	# Check the input
+
+	die "Knowledge->reset() takes no arguments" if scalar(@_) != 1;
+
+	$self->{_value} = undef;
 }
 
 sub set_value {
@@ -102,7 +112,7 @@ AI::ExpertSystem::Simple::Knowledge - Utility class for a simple expert system
 
 =head1 VERSION
 
-This document refers to verion 1.00 of AI::ExpertSystem::Simple::Knowledge, released April 25, 2003
+This document refers to verion 1.1 of AI::ExpertSystem::Simple::Knowledge, released June 10, 2003
 
 =head1 SYNOPSIS
 
@@ -130,6 +140,10 @@ Optional questions and the valid responses can be set later and the value of the
 =head2 Public methods
 
 =over 4
+
+=item reset( )
+
+Resets the state of knowledge back to what it was when the object was created
 
 =item set_value( VALUE )
 
@@ -180,6 +194,10 @@ When the constructor is initialised it requires one argument. This message is gi
 =item Knowledge->new() argument 1, (NAME) is undefined
 
 The correct number of arguments were supplied to the constructor, however the first argument, NAME, was undefined.
+
+=item Knowledge->reset() takes no arguments
+
+When the method is called it requires no arguments. This message is given if some where supplied.
 
 =item Knowledge->set_value() takes 1 argument
 

@@ -1,11 +1,26 @@
 AI::ExpertSystem::Simple - A class implementing an expert system
 
-This is release V1.00 of AI::ExpertSystem::Simple. The class 
-implements a simple expert system that reads it knowledge base 
+This is release V1.1 of AI::ExpertSystem::Simple. The class 
+implements a simple expert system that reads its knowledge base 
 (set of IF .. THEN rules) from an XML file.
 
 Three sample knowledge bases are provided along with a command line shell
 that allows the knowledge bases to be consulted.
+
+There is a Tcl/Tk based shell in which you can run a consultation, I
+was going to write this in Perl/Tk as would seem obvious but this is
+less than simple under OSX, infact I never got it to work. However there
+was an OSX based version of Tcl/Tk and it would be easier to write the
+shell in that which is much more portable (just install ActiveTcl on 
+Windows, Aqua Tcl/Tk on OSX and use what you have on Linux - ideal).
+
+So I dont have to write to a lowest common installation of PerlTk and
+I don't have to explain in excruciating detail how to install PerlTk
+on a variety of systems that I do not have access to. Suits me.
+
+Also when I get to upgrade my Ruby version of this class it too can 
+use the same shell. Go ahead and learn Tcl and Tk - it's rather 
+usefull in it's own way.
 
 INSTALLATION
 
@@ -29,9 +44,7 @@ you are even running this code for in the first place.
 TO DO
 
 * More documentation (you can never have too much)
-* Implement the reset method (I know what this means)
-* Tk based simpleshell
-* Event logging
+* Explain how the goal was reached
 
 REQUIREMENTS
 
@@ -49,6 +62,11 @@ This module is free software. It may be used, redistributed and/or
 modified under the same terms as Perl itself.
 
 CHANGES IN THIS RELEASE
+
+V1.01:
+      - Implemented the reset method
+	  - Simpleshell now works with the consult the Tcl/Tk shell
+	  - Included a copy of the Tcl/Tk shell
 
 V1.00:
       - First release to CPAN

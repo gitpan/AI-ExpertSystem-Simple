@@ -9,7 +9,7 @@ use AI::ExpertSystem::Simple::Rule;
 use AI::ExpertSystem::Simple::Knowledge;
 use AI::ExpertSystem::Simple::Goal;
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub new {
 	my ($class) = @_;
@@ -26,7 +26,31 @@ sub new {
 	$self->{_ask_about} = undef;
 	$self->{_told_about} = undef;
 
+	$self->{_log} = ();
+
+	$self->{_number_of_rules} = 0;
+	$self->{_number_of_attributes} = 0;
+	$self->{_number_of_questions} = 0;
+
 	return bless $self, $class;
+}
+
+sub reset {
+	my ($self) = @_;
+
+	die "Simple->reset() takes no arguments" if scalar(@_) != 1;
+
+	foreach my $name (keys %{$self->{_rules}}) {
+		$self->{_rules}->{$name}->reset();
+	}
+
+	foreach my $name (keys %{$self->{_knowledge}}) {
+		$self->{_knowledge}->{$name}->reset();
+	}
+
+	$self->{_ask_about} = undef;
+	$self->{_told_about} = undef;
+	$self->{_log} = ();
 }
 
 sub load {
@@ -48,6 +72,11 @@ sub load {
 
 		$self->{_filename} = $filename;
 
+		$self->_add_to_log( "Read in $filename" );
+		$self->_add_to_log( "There are " . $self->{_number_of_rules} . " rules" );
+		$self->_add_to_log( "There are " . $self->{_number_of_attributes} . " attributes" );
+		$self->_add_to_log( "There are " . $self->{_number_of_questions} . " questions" );
+		$self->_add_to_log( "The goal attibutes is " . $self->{_goal}->name() );
 		return 1;
 	} else {
 		die "Simple->load() unable to use file";
@@ -81,6 +110,7 @@ sub _rule {
 
 	if(!defined($self->{_rules}->{$name})) {
 		$self->{_rules}->{$name} = AI::ExpertSystem::Simple::Rule->new($name);
+		$self->{_number_of_rules}++;
 	}
 
 	foreach $x ($node->get_xpath('//condition')) {
@@ -96,6 +126,7 @@ sub _rule {
 		$self->{_rules}->{$name}->add_condition($attribute, $value);
 
 		if(!defined($self->{_knowledge}->{$attribute})) {
+			$self->{_number_of_attributes}++;
 			$self->{_knowledge}->{$attribute} = AI::ExpertSystem::Simple::Knowledge->new($attribute);
 		}
 	}
@@ -113,6 +144,7 @@ sub _rule {
 		$self->{_rules}->{$name}->add_action($attribute, $value);
 
 		if(!defined($self->{_knowledge}->{$attribute})) {
+			$self->{_number_of_attributes}++;
 			$self->{_knowledge}->{$attribute} = AI::ExpertSystem::Simple::Knowledge->new($attribute);
 		}
 	}
@@ -127,6 +159,8 @@ sub _question {
 	my $text = undef;
 	my @responses = ();
 
+	$self->{_number_of_questions}++;
+
 	my $x = ($node->children('attribute'))[0];
 	$attribute = $x->text();
 
@@ -138,6 +172,7 @@ sub _question {
 	}
 
 	if(!defined($self->{_knowledge}->{$attribute})) {
+		$self->{_number_of_attributes}++;
 		$self->{_knowledge}->{$attribute} = AI::ExpertSystem::Simple::Knowledge->new($attribute);
 	}
 	$self->{_knowledge}->{$attribute}->set_question($text, @responses);
@@ -172,15 +207,22 @@ sub process {
 				my $n = $answer;
 				my $v = $old_answers{$answer};
 
+				$self->_add_to_log( "Setting '$n' to '$v'" );
+
 				$self->{_knowledge}->{$n}->set_value($v);
 
 				foreach my $key (keys(%{$self->{_rules}})) {
 					if($self->{_rules}->{$key}->state() eq 'active') {
-						if($self->{_rules}->{$key}->given($n, $v) eq 'completed') {
+						my $state = $self->{_rules}->{$key}->given($n, $v);
+						if($state eq 'completed') {
+							$self->_add_to_log( "Rule '$key' has completed" );
 							my %y = $self->{_rules}->{$key}->actions();
 							foreach my $k (keys(%y)) {
+								$self->_add_to_log( "Rule '$key' is setting '$k' to '$y{$k}'" );
 								$answers{$k} = $y{$k};
 							}
+						} elsif($state eq 'invalid') {
+							$self->_add_to_log( "Rule '$key' is now inactive" );
 						}
 					}
 				}
@@ -252,6 +294,24 @@ sub get_answer {
 	return $self->{_goal}->answer($self->{_knowledge}->{$n}->get_value());
 }
 
+sub log {
+	my ($self) = @_;
+
+	die "Simple->log() takes no arguments" if scalar(@_) != 1;
+
+	my @return = ();
+	@return = @{$self->{_log}} if defined @{$self->{_log}};
+
+	$self->{_log} = ();
+
+	return @return;
+}
+
+sub _add_to_log {
+	my ($self, $message) = @_;
+
+	push( @{$self->{_log}}, $message );
+}
 1;
 
 =head1 NAME
@@ -260,7 +320,7 @@ AI::ExpertSystem::Simple - A simple expert system shell
 
 =head1 VERSION
 
-This document refers to verion 1.00 of AI::ExpertSystem::Simple, released April 25, 2003
+This document refers to verion 1.1 of AI::ExpertSystem::Simple, released June 10, 2003
 
 =head1 SYNOPSIS
 
@@ -293,6 +353,10 @@ The constructor takes no arguments and just initialises a few basic variables.
 =head2 Public methods
 
 =over 4
+
+=item reset( )
+
+Resets the system back to its initial state so that a new consoltation can be run
 
 =item load( FILENAME )
 
@@ -348,6 +412,10 @@ valid responses and the users selection is returned by this method.
 If the process( ) method has returned "finished" then the answer to the users query will be 
 returned by this method.
 
+=item log( )
+
+Returns a list of the actions undertaken so far and clears the log.
+
 =back
 
 =head2 Private methods
@@ -366,6 +434,10 @@ A private method to get the rule data from the knowledgebase.
 
 A private method to get the question data from the knowledgebase.
 
+=item _add_to_log
+
+A private method to add a message to the log.
+
 =back
 
 =head1 ENVIRONMENT
@@ -379,6 +451,11 @@ None
 =item Simple->new() takes no arguments
 
 When the constructor is initialised it requires no arguments. This message is given if 
+some arguments were supplied.
+
+=item Simple->reset() takes no arguments
+
+When the method is called it requires no arguments. This message is given if 
 some arguments were supplied.
 
 =item Simple->load() takes 1 argument
@@ -421,6 +498,11 @@ The corrct number of arguments were supplied with the method call, however the f
 argument, VALUE, was undefined.
 
 =item Simple->get_answer() takes no arguments
+
+When the method is called it requires no arguments. This message is given if 
+some arguments were supplied.
+
+=item Simple->log() takes no arguments
 
 When the method is called it requires no arguments. This message is given if 
 some arguments were supplied.

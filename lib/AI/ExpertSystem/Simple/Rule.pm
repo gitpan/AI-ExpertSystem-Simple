@@ -3,7 +3,7 @@ package AI::ExpertSystem::Simple::Rule;
 use strict;
 use warnings;
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub new {
 	my ($class, $name) = @_;
@@ -26,12 +26,16 @@ sub new {
 sub reset {
 	my ($self) = @_;
 
-	die "Rule->reset() takes no arguments" if(scalar(@_) != 1);
+	# Check the input
+
+	die "Rule->reset() takes no arguments" if scalar(@_) != 1;
 
 	$self->{_state} = 'active';
+	$self->{_counter} = 0;
 
-	foreach my $key (keys(%{$self->{_tested}})) {
-		$self->{_tested}->{$key} = 0;
+	foreach my $name (keys %{$self->{_tested}}) {
+		$self->{_tested}->{$name} = 0;
+		$self->{_counter}++;
 	}
 }
 
@@ -137,7 +141,7 @@ AI::ExpertSystem::Simple::Rule - A utility class for a simple expert system
 
 =head1 VERSION
 
-This document refers to verion 1.00 of AI::ExpertSystem::Simple::Rule, released April 25, 2003
+This document refers to verion 1.1 of AI::ExpertSystem::Simple::Rule, released June 10, 2003
 
 =head1 SYNOPSIS
 

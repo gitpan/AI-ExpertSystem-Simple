@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 24;
 
 use_ok('AI::ExpertSystem::Simple');
 
@@ -67,5 +67,25 @@ is($x->process(), 'finished', 'Thats all folks');
 
 eval { $x->get_answer(1); };
 like($@, qr/^Simple->get_answer\(\) takes no arguments /, 'Too many arguments');
+
+is($x->get_answer(), 'You have set the goal to pretzel', 'Got the answer');
+
+################################################################################
+# Reset and do it all again
+################################################################################
+
+eval { $x->reset(1); };
+like($@, qr/^Simple->reset\(\) takes no arguments /, 'Too many arguments');
+
+$x->reset();
+
+is($x->process(), 'question', 'We have a question to answer');
+
+($t, $r) = $x->get_question();
+
+$x->answer('yes');
+
+is($x->process(), 'continue', 'Carry on');
+is($x->process(), 'finished', 'Thats all folks');
 
 is($x->get_answer(), 'You have set the goal to pretzel', 'Got the answer');

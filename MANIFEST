@@ -1,4 +1,5 @@
 bin/simpleshell
+bin/consult
 Changes
 examples/Animal.xml
 examples/Doctor.xml
