@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 34;
+use Test::More tests => 37;
 
 use_ok('AI::ExpertSystem::Simple::Rule');
 
@@ -123,4 +123,12 @@ like($@, qr/^Rule->actions\(\) takes no arguments /, 'Too many arguments');
 
 my %r = $x->actions();
 
+is(scalar keys %r, 1, 'Check the action is ok');
 is($r{c}, 3, 'Check the action is ok');
+
+eval { $x->conditions(1); };
+like($@, qr/^Rule->conditions\(\) takes no arguments /, 'Too many arguments');
+
+%r = $x->conditions();
+
+is(scalar keys %r, 2, 'Check the action is ok');

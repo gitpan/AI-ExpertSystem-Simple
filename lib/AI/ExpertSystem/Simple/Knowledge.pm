@@ -3,18 +3,19 @@ package AI::ExpertSystem::Simple::Knowledge;
 use strict;
 use warnings;
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 sub new {
 	my ($class, $name) = @_;
 
-        die "Knowledge->new() takes 1 argument" if scalar(@_) != 2;
-        die "Knowledge->new() argument 1, (NAME) is undefined" if ! defined($name);
+    die "Knowledge->new() takes 1 argument" if scalar(@_) != 2;
+    die "Knowledge->new() argument 1, (NAME) is undefined" if ! defined($name);
 
 	my $self = {};
 
 	$self->{_name} = $name;
 	$self->{_value} = undef;
+	$self->{_setter} = undef;
 	$self->{_question} = undef;
 	$self->{_responses} = ();
 
@@ -24,24 +25,25 @@ sub new {
 sub reset {
 	my ($self) = @_;
 
-	# Check the input
-
 	die "Knowledge->reset() takes no arguments" if scalar(@_) != 1;
 
 	$self->{_value} = undef;
+	$self->{_setter} = undef;
 }
 
 sub set_value {
-	my ($self, $value) = @_;
+	my ($self, $value, $setter) = @_;
 
-        die "Knowledge->set_value() takes 1 argument" if scalar(@_) != 2;
-        die "Knowledge->set_value() argument 1, (VALUE) is undefined" if ! defined($value);
+    die "Knowledge->set_value() takes 2 argument" if scalar(@_) != 3;
+    die "Knowledge->set_value() argument 1, (VALUE) is undefined" if ! defined($value);
+    die "Knowledge->set_value() argument 2, (SETTER) is undefined" if ! defined($setter);
 
 	if(defined($self->{_value})) {
 		die "Knowledge->set_value() has already been set";
 	}
 
 	$self->{_value} = $value;
+	$self->{_setter} = $setter;
 }
 
 sub get_value {
@@ -50,6 +52,14 @@ sub get_value {
         die "Knowledge->get_value() takes no arguments" if scalar(@_) != 1;
 
 	return $self->{_value};
+}
+
+sub get_setter {
+	my ($self) = @_;
+
+	die "Knowledge->get_setter() takes no arguments" if scalar(@_) != 1;
+
+	return $self->{_setter};
 }
 
 sub is_value_set {
@@ -112,7 +122,7 @@ AI::ExpertSystem::Simple::Knowledge - Utility class for a simple expert system
 
 =head1 VERSION
 
-This document refers to verion 1.1 of AI::ExpertSystem::Simple::Knowledge, released June 10, 2003
+This document refers to verion 1.2 of AI::ExpertSystem::Simple::Knowledge, released June 10, 2003
 
 =head1 SYNOPSIS
 
@@ -145,13 +155,17 @@ Optional questions and the valid responses can be set later and the value of the
 
 Resets the state of knowledge back to what it was when the object was created
 
-=item set_value( VALUE )
+=item set_value( VALUE, SETTER )
 
-During the consultation process the VALUE for an attribute can be set by either asking the user a question or by deduction. The value is then recorded.
+During the consultation process the VALUE for an attribute can be set by either asking the user a question or by deduction. The value is then recorded along with the rule that set the value (or blank it if was a question).
 
 =item get_value( )
 
 Returns the current value of the attribute.
+
+=item get_setter( )
+
+Returns the current setter of the attribute.
 
 =item is_value_set( )
 
@@ -199,19 +213,27 @@ The correct number of arguments were supplied to the constructor, however the fi
 
 When the method is called it requires no arguments. This message is given if some where supplied.
 
-=item Knowledge->set_value() takes 1 argument
+=item Knowledge->set_value() takes 2 argument
 
-When the method is called it requires one argument. This message is given if more of less arguments are given.
+When the method is called it requires two arguments. This message is given if more of less arguments are given.
 
 =item Knowledge->set_value() argument 1, (VALUE) is undefined
 
 The correct number of arguments were supplied to the method call, however the first argument, VALUE, was undefined.
+
+=item Knowledge->set_value() argument 2, (SETTER) is undefined
+
+The correct number of arguments were supplied to the method call, however the second argument, SETTER, was undefined.
 
 =item Knowledge->set_value() has already been set
 
 This method has already been called and the value set. It cannot be called twice.
 
 =item Knowledge->get_value() takes no arguments
+
+When the method is called it requires no arguments. This message is given if some where supplied.
+
+=item Knowledge->get_setter() takes no arguments
 
 When the method is called it requires no arguments. This message is given if some where supplied.
 

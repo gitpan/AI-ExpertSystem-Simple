@@ -47,19 +47,15 @@ while($continue eq 'yes') {
 	while ($running) {
 		my $r = $s->process();
 
-		my @log = $s->log();
-
-		if($tkinterface) {
-			foreach my $line (@log) {
-				say_something('information', '', $line);
-			}
-		}
+		process_log();
 
 		if ( $r eq 'question' ) {
 			$s->answer( ask_question( $s->get_question() ) );
 		}
 		elsif ( $r eq 'finished' ) {
 			say_status('The answer is : ' . $s->get_answer());
+			$s->explain();
+			process_log( 'explaination' , 1);
 			$running = undef;
 		}
 		elsif ( $r eq 'failed' ) {
@@ -107,7 +103,7 @@ sub ask_question {
 }
 
 ######################################################################
-#
+# The various ways of printing out a message
 ######################################################################
 
 sub say_status   { say_something('status',   '>> ', shift) }
@@ -120,5 +116,23 @@ sub say_something {
 		print "$tag1:$text\n";
 	} else {
 		print "$tag2$text\n";
+	}
+}
+
+######################################################################
+# The various ways of printing out a message
+######################################################################
+
+sub process_log {
+	my ($prefix, $override) = @_;
+
+	$prefix = 'information' unless $prefix;
+
+	my @log = $s->log();
+
+	if($tkinterface or $override) {
+		foreach my $line (@log) {
+			say_something($prefix, '', $line);
+		}
 	}
 }

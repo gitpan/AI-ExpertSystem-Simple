@@ -1,6 +1,6 @@
 AI::ExpertSystem::Simple - A class implementing an expert system
 
-This is release V1.1 of AI::ExpertSystem::Simple. The class 
+This is release V1.2 of AI::ExpertSystem::Simple. The class 
 implements a simple expert system that reads its knowledge base 
 (set of IF .. THEN rules) from an XML file.
 
@@ -44,7 +44,6 @@ you are even running this code for in the first place.
 TO DO
 
 * More documentation (you can never have too much)
-* Explain how the goal was reached
 
 REQUIREMENTS
 
@@ -62,6 +61,9 @@ This module is free software. It may be used, redistributed and/or
 modified under the same terms as Perl itself.
 
 CHANGES IN THIS RELEASE
+
+V1.02:
+      - The explain method now works
 
 V1.01:
       - Implemented the reset method

@@ -204,6 +204,8 @@ proc do_run {} {
 			}
 		} elseif {[regexp {^information:(.*)} $text match newtext]} {
 			information $newtext
+		} elseif {[regexp {^explaination:(.*)} $text match newtext]} {
+			status $newtext
 		} else {
 			status $text
 		}

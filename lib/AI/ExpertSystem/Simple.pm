@@ -9,7 +9,7 @@ use AI::ExpertSystem::Simple::Rule;
 use AI::ExpertSystem::Simple::Knowledge;
 use AI::ExpertSystem::Simple::Goal;
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 sub new {
 	my ($class) = @_;
@@ -194,7 +194,8 @@ sub process {
 	if($self->{_ask_about}) {
 		my %answers = ();
 
-		$answers{$self->{_ask_about}} = $self->{_told_about};
+		$answers{$self->{_ask_about}}->{value} = $self->{_told_about};
+		$answers{$self->{_ask_about}}->{setter} = '';
 
 		$self->{_ask_about} = undef;
 		$self->{_told_about} = undef;
@@ -205,11 +206,12 @@ sub process {
 
 			foreach my $answer (keys(%old_answers)) {
 				my $n = $answer;
-				my $v = $old_answers{$answer};
+				my $v = $old_answers{$answer}->{value};
+				my $s = $old_answers{$answer}->{setter};
 
 				$self->_add_to_log( "Setting '$n' to '$v'" );
 
-				$self->{_knowledge}->{$n}->set_value($v);
+				$self->{_knowledge}->{$n}->set_value($v,$s);
 
 				foreach my $key (keys(%{$self->{_rules}})) {
 					if($self->{_rules}->{$key}->state() eq 'active') {
@@ -219,7 +221,8 @@ sub process {
 							my %y = $self->{_rules}->{$key}->actions();
 							foreach my $k (keys(%y)) {
 								$self->_add_to_log( "Rule '$key' is setting '$k' to '$y{$k}'" );
-								$answers{$k} = $y{$k};
+								$answers{$k}->{value} = $y{$k};
+								$answers{$k}->{setter} = $key;
 							}
 						} elsif($state eq 'invalid') {
 							$self->_add_to_log( "Rule '$key' is now inactive" );
@@ -312,6 +315,67 @@ sub _add_to_log {
 
 	push( @{$self->{_log}}, $message );
 }
+
+sub explain {
+	my ($self) = @_;
+
+	die "Simple->explain() takes no arguments" if scalar(@_) != 1;
+
+	my $name  = $self->{_goal}->name();
+	my $rule  = $self->{_knowledge}->{$name}->get_setter();
+	my $value = $self->{_knowledge}->{$name}->get_value();
+
+	my $x = "The goal '$name' was set to '$value' by " . ($rule ? "rule '$rule'" : 'asking a question' );
+	$self->_add_to_log( $x );
+
+	my @processed_rules;
+	push( @processed_rules, $rule ) if $rule;
+
+	$self->_explain_this( $rule, '', @processed_rules );
+}
+
+sub _explain_this {
+	my ($self, $rule, $depth, @processed_rules) = @_;
+
+	$self->_add_to_log( "${depth}Explaining rule '$rule'" );
+
+	my %dont_do_these = map{ $_ => 1 } @processed_rules;
+
+	my @check_these_rules = ();
+
+	my %conditions = $self->{_rules}->{$rule}->conditions();
+	foreach my $name (sort keys %conditions) {
+		my $value = $conditions{$name};
+		my $setter = $self->{_knowledge}->{$name}->get_setter();
+
+		my $x = "$depth Condition '$name' was set to '$value' by " . ($setter ? "rule '$setter'" : 'asking a question' );
+		$self->_add_to_log( $x );
+
+		if($setter) {
+			unless($dont_do_these{$setter}) {
+				$dont_do_these{$setter} = 1;
+				push( @check_these_rules, $setter );
+			}
+		}
+	}
+
+	my %actions = $self->{_rules}->{$rule}->actions();
+	foreach my $name (sort keys %actions) {
+		my $value = $actions{$name};
+
+		my $x = "$depth Action set '$name' to '$value'";
+		$self->_add_to_log( $x );
+	}
+
+	@processed_rules = keys %dont_do_these;
+
+	foreach my $x ( @check_these_rules ) {
+		push( @processed_rules, $self->_explain_this( $x, "$depth ", keys %dont_do_these ) );
+	}
+
+	return @processed_rules;
+}
+
 1;
 
 =head1 NAME
@@ -320,7 +384,7 @@ AI::ExpertSystem::Simple - A simple expert system shell
 
 =head1 VERSION
 
-This document refers to verion 1.1 of AI::ExpertSystem::Simple, released June 10, 2003
+This document refers to verion 1.2 of AI::ExpertSystem::Simple, released June 10, 2003
 
 =head1 SYNOPSIS
 
@@ -416,6 +480,10 @@ returned by this method.
 
 Returns a list of the actions undertaken so far and clears the log.
 
+=item explain( )
+
+Explain how the given answer was arrived at. The explanation is added to the log.
+
 =back
 
 =head2 Private methods
@@ -437,6 +505,10 @@ A private method to get the question data from the knowledgebase.
 =item _add_to_log
 
 A private method to add a message to the log.
+
+=item _explain_this
+
+A private method to explain how a single attribute was set.
 
 =back
 
@@ -503,6 +575,11 @@ When the method is called it requires no arguments. This message is given if
 some arguments were supplied.
 
 =item Simple->log() takes no arguments
+
+When the method is called it requires no arguments. This message is given if 
+some arguments were supplied.
+
+=item Simple->explain() takes no arguments
 
 When the method is called it requires no arguments. This message is given if 
 some arguments were supplied.

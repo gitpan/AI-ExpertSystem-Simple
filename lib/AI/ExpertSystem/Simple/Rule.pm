@@ -3,7 +3,7 @@ package AI::ExpertSystem::Simple::Rule;
 use strict;
 use warnings;
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 sub new {
 	my ($class, $name) = @_;
@@ -117,6 +117,14 @@ sub actions {
 	return %{$self->{_actions}};
 }
 
+sub conditions {
+	my ($self) = @_;
+
+	die "Rule->conditions() takes no arguments" if(scalar(@_) != 1);
+
+	return %{$self->{_conditions}};
+}
+
 sub unresolved {
 	my ($self) = @_;
 
@@ -141,7 +149,7 @@ AI::ExpertSystem::Simple::Rule - A utility class for a simple expert system
 
 =head1 VERSION
 
-This document refers to verion 1.1 of AI::ExpertSystem::Simple::Rule, released June 10, 2003
+This document refers to verion 1.2 of AI::ExpertSystem::Simple::Rule, released June 10, 2003
 
 =head1 SYNOPSIS
 
@@ -195,6 +203,10 @@ is changed in light of the result.
 =item actions( )
 
 Returns a list of the actions set in the rule.
+
+=item conditions( )
+
+Returns a list of the conditions matched in the rule.
 
 =item unresolved( )
 
@@ -279,6 +291,10 @@ The corrct number of arguments were supplied with the method call, however the f
 The corrct number of arguments were supplied with the method call, however the second argument, VALUE, was undefined.
 
 =item Rule->actions() takes no arguments
+
+When the method is called it requires no arguments. This message is given if more or less arguments were supplied.
+
+=item Rule->conditions() takes no arguments
 
 When the method is called it requires no arguments. This message is given if more or less arguments were supplied.
 

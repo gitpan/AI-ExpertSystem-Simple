@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 40;
+use Test::More tests => 44;
 
 ################################################################################
 # Load the class
@@ -72,30 +72,40 @@ is($x->get_value(), undef, 'The value is unset');
 is($x->has_question(), '1', 'The question has not been answered');
 
 eval { $x->set_value(); };
-like($@, qr/^Knowledge->set_value\(\) takes 1 argument /, 'Too few arguments');
+like($@, qr/^Knowledge->set_value\(\) takes 2 argument /, 'Too few arguments');
 
-eval { $x->set_value(1,2); };
-like($@, qr/^Knowledge->set_value\(\) takes 1 argument /, 'Too many arguments');
+eval { $x->set_value(1); };
+like($@, qr/^Knowledge->set_value\(\) takes 2 argument /, 'Too few arguments');
 
-eval { $x->set_value(undef); };
+eval { $x->set_value(1,2,3); };
+like($@, qr/^Knowledge->set_value\(\) takes 2 argument /, 'Too many arguments');
+
+eval { $x->set_value(undef,2); };
 like($@, qr/^Knowledge->set_value\(\) argument 1, \(VALUE\) is undefined /, 'Value is undefined');
+
+eval { $x->set_value(1,undef); };
+like($@, qr/^Knowledge->set_value\(\) argument 2, \(SETTER\) is undefined /, 'Value is undefined');
 
 eval { $x->is_value_set(1); };
 like($@, qr/^Knowledge->is_value_set\(\) takes no arguments /, 'Too many arguments');
 
 is($x->is_value_set(), '', 'Value is not set');
 
-$x->set_value('fred');
+$x->set_value('fred', 'banana');
 
 is($x->is_value_set(), '1', 'Value is set');
 
-eval { $x->set_value('fredfred'); };
+eval { $x->set_value('fredfred', 'banana'); };
 like($@, qr/^Knowledge->set_value\(\) has already been set /, 'Is already set');
 
 eval { $x->get_value(1); };
 like($@, qr/^Knowledge->get_value\(\) takes no arguments /, 'Too many arguments');
 
+eval { $x->get_setter(1); };
+like($@, qr/^Knowledge->get_setter\(\) takes no arguments /, 'Too many arguments');
+
 is($x->get_value(), 'fred', 'The value is set');
+is($x->get_setter(), 'banana', 'The value is set');
 is($x->has_question(), '', 'The question has been answered');
 
 ################################################################################
@@ -122,7 +132,7 @@ like($@, qr/^Knowledge->reset\(\) takes no arguments /, 'Too many arguments');
 $x->reset();
 
 is($x->is_value_set(), '', 'Value is not set');
-$x->set_value('fred');
+$x->set_value('fred', '');
 is($x->is_value_set(), '1', 'Value is set');
 
 $x->reset();
@@ -138,7 +148,7 @@ $x->reset();
 is($x->has_question(), '1', 'The question has been set');
 is($x->is_value_set(), '', 'Value is not set');
 
-$x->set_value('fred');
+$x->set_value('fred', '');
 
 is($x->is_value_set(), '1', 'Value is set');
 is($x->has_question(), '', 'The question has been answered');
